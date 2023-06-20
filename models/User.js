@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+import mongoose from 'mongoose';
 
 const UserSchema = new mongoose.Schema({
   telegramId: {
@@ -12,7 +12,7 @@ const UserSchema = new mongoose.Schema({
   },
   lastName: {
     type: String,
-    //required: true,
+    // required: true,
   },
   username: {
     type: String,
@@ -27,4 +27,4 @@ const UserSchema = new mongoose.Schema({
   },
 });
 
-export default mongoose.model("User", UserSchema);
+export default mongoose.model('User', UserSchema);

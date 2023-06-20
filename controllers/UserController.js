@@ -1,4 +1,4 @@
-import User from "../models/User.js";
+import User from '../models/User.js';
 
 export const userExists = async (telegramId) => {
   const user = await User.exists({ telegramId });
@@ -13,8 +13,7 @@ export const signup = async (userData, location) => {
     username,
   } = userData;
 
-  const userExists = await User.exists({ telegramId });
-  if (userExists) return;
+  if (await userExists(telegramId)) return;
 
   const doc = new User({
     telegramId,
@@ -31,7 +30,7 @@ export const getGeolocation = async (location) => {
   const { latitude, longitude } = location;
 
   const response = await fetch(
-    `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`
+    `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`,
   );
   const data = await response.json();
   console.log(data);

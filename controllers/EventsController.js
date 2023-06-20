@@ -1,18 +1,18 @@
-import Event from "../models/Event.js";
-import User from "../models/User.js";
-import { validationResult } from "express-validator";
+import { validationResult } from 'express-validator';
+import Event from '../models/Event.js';
+import User from '../models/User.js';
 
 export const createEvent = async (req, res) => {
   try {
     const errors = validationResult(req);
 
-    if (!errors.isEmpty())
-      return res.status(400).json({ errors: errors.array() });
+    if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
 
-    const { title, description, img, date, location, link, tags } = req.body;
+    const {
+      title, description, img, date, location, link, tags,
+    } = req.body;
 
-    if (await Event.findOne({ title }))
-      return res.status(400).json({ message: "This event already exists" });
+    if (await Event.findOne({ title })) return res.status(400).json({ message: 'This event already exists' });
 
     const doc = new Event({
       title,
@@ -24,13 +24,13 @@ export const createEvent = async (req, res) => {
       tags,
     });
     const event = await doc.save();
-    res.json({
+    return res.json({
       event,
     });
   } catch (err) {
     console.log(err);
-    res.status(500).json({
-      message: "Failed to verify data.",
+    return res.status(500).json({
+      message: 'Failed to verify data.',
     });
   }
 };
@@ -45,8 +45,7 @@ export const saveEvent = async (telegramId, eventId) => {
   const event = await Event.findById(eventId);
   const user = await User.findOne({ telegramId });
 
-  if (user.events.some((savedEvent) => savedEvent._id.equals(event._id)))
-    throw new Error("Подія уже є в списку збережених.");
+  if (user.events.some((savedEvent) => savedEvent._id.equals(event._id))) throw new Error('Подія уже є в списку збережених.');
 
   user.events.push(event);
   await user.save();

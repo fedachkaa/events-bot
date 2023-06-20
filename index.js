@@ -1,9 +1,9 @@
-import TelegramBot from "node-telegram-bot-api";
-import dotenv from "dotenv";
-import { startServerAndDB } from "./server.js";
-import * as UserController from "./controllers/UserController.js";
-import * as EventsController from "./controllers/EventsController.js";
-import * as Formatter from "./utils/format.js";
+import dotenv from 'dotenv';
+import TelegramBot from 'node-telegram-bot-api';
+import * as EventsController from './controllers/EventsController.js';
+import * as UserController from './controllers/UserController.js';
+import startServerAndDB from './server.js';
+import * as Formatter from './utils/format.js';
 
 dotenv.config();
 
@@ -16,126 +16,129 @@ const bot = new TelegramBot(token, { polling: true });
 bot.onText(/\/start/, (msg) => {
   bot.sendMessage(
     msg.chat.id,
-    "Привіт! Я бот-організатор подій. Тут відображатимуться різні події твого міста!",
+    'Привіт! Я бот-організатор подій. Тут відображатимуться різні події твого міста!',
     {
       reply_markup: {
         inline_keyboard: [
           [
-            { text: "Зареєструватись", callback_data: "signup" },
-            { text: "Авторизуватись", callback_data: "auth" },
+            { text: 'Зареєструватись', callback_data: 'signup' },
+            { text: 'Авторизуватись', callback_data: 'auth' },
           ],
         ],
       },
-    }
+    },
   );
 });
 
-bot.on("callback_query", async (query) => {
+bot.on('callback_query', async (query) => {
   const chatId = query.message.chat.id;
   const user = query.from;
   const buttonClicked = query.data;
   const inlineKeyboard = {
     inline_keyboard: [
-      [{ text: "Усі події", callback_data: "allEvents" }],
-      [{ text: "Події по тегу", callback_data: "eventByTag" }],
-      [{ text: "Події по місту", callback_data: "eventsByCity" }],
-      [{ text: "Мої події", callback_data: "myEvents" }],
+      [{ text: 'Усі події', callback_data: 'allEvents' }],
+      [{ text: 'Події по тегу', callback_data: 'eventByTag' }],
+      [{ text: 'Події по місту', callback_data: 'eventsByCity' }],
+      [{ text: 'Мої події', callback_data: 'myEvents' }],
     ],
   };
 
   switch (true) {
-    case buttonClicked === "signup":
+    case buttonClicked === 'signup':
       try {
-        if (await UserController.userExists(user.id))
-          throw new Error("User already exists");
-        bot.sendMessage(chatId, "Введіть ваше *місто*:", {
-          parse_mode: "Markdown",
+        if (await UserController.userExists(user.id)) throw new Error('User already exists');
+        bot.sendMessage(chatId, 'Введіть ваше *місто*:', {
+          parse_mode: 'Markdown',
         });
-        bot.on("message", (msg) => {
+        bot.on('message', (msg) => {
           UserController.signup(msg.from, msg.text);
-          bot.sendMessage(chatId, "Реєстрація пройшла успішно!");
+          bot.sendMessage(chatId, 'Реєстрація пройшла успішно!');
         });
       } catch (err) {
-        const inlineKeyboard = {
+        const inlineKeyboardAuth = {
           inline_keyboard: [
-            [{ text: "Авторизуватись", callback_data: "auth" }],
+            [{ text: 'Авторизуватись', callback_data: 'auth' }],
           ],
         };
         bot.sendMessage(
           chatId,
-          "Ви уже зареєстровані. Авторизуйтесь, будь ласка:",
+          'Ви уже зареєстровані. Авторизуйтесь, будь ласка:',
           {
-            reply_markup: inlineKeyboard,
-          }
+            reply_markup: inlineKeyboardAuth,
+          },
         );
       }
       break;
 
-    case buttonClicked === "auth":
+    case buttonClicked === 'auth':
       bot.sendMessage(
         chatId,
         `Привіт, ${user.first_name}, авторизація пройшла успішно!`,
         {
           reply_markup: inlineKeyboard,
-        }
+        },
       );
       break;
 
-    case buttonClicked === "allEvents":
+    case buttonClicked === 'allEvents': {
       const events = await EventsController.getAllEvents();
       events.forEach((event) => {
         bot.sendPhoto(chatId, `${event.img}`, {
           caption: Formatter.formatEventMessage(event),
-          parse_mode: "HTML",
+          parse_mode: 'HTML',
           reply_markup: {
             inline_keyboard: [
               [
-                { text: "Детальніше 🌐", url: `${event.link}` },
+                { text: 'Детальніше 🌐', url: `${event.link}` },
                 {
-                  text: "Зберегти ❤️",
-                  callback_data: `saveEvent ${event._id}`,
+                  text: 'Зберегти ❤️',
+                  callback_data: `saveEvent ${event.id}`,
                 },
               ],
-              [{ text: "Меню", callback_data: "menu" }],
+              [{ text: 'Меню', callback_data: 'menu' }],
             ],
           },
         });
       });
       break;
+    }
 
-    case buttonClicked.includes("saveEvent"):
+    case buttonClicked.includes('saveEvent'):
       try {
-        const id = buttonClicked.split(" ")[1];
+        const id = buttonClicked.split(' ')[1];
         const res = await EventsController.saveEvent(user.id, id);
         bot.sendMessage(chatId, `Подія ${res.title} успішно збережена!`, {
           reply_markup: inlineKeyboard,
         });
       } catch (err) {
         console.log(err);
-        bot.sendMessage(chatId, `Подія уже є в списку збережених подій!`, {
+        bot.sendMessage(chatId, 'Подія уже є в списку збережених подій!', {
           reply_markup: inlineKeyboard,
         });
       }
       break;
 
-    case buttonClicked === "myEvents":
+    case buttonClicked === 'myEvents': {
       const userEvents = await EventsController.userEvents(user.id);
       if (userEvents.length) {
         const text = Formatter.formatUserEvents(userEvents);
         bot.sendMessage(chatId, text, {
-          parse_mode: "HTML",
+          parse_mode: 'HTML',
           reply_markup: inlineKeyboard,
         });
       } else {
-        bot.sendMessage(chatId, "У вас ще немає збережених подій.", {
+        bot.sendMessage(chatId, 'У вас ще немає збережених подій.', {
           reply_markup: inlineKeyboard,
         });
       }
       break;
+    }
 
-    case buttonClicked === "menu":
-      bot.sendMessage(chatId, "Меню:", { reply_markup: inlineKeyboard });
+    case buttonClicked === 'menu':
+      bot.sendMessage(chatId, 'Меню:', { reply_markup: inlineKeyboard });
       break;
+    default:
+      bot.sendMessage(chatId, 'Щось пішло не так...Спробуйте пізніше');
   }
 
   bot.answerCallbackQuery(query.id);
@@ -189,6 +192,4 @@ bot.on("callback_query", async (query) => {
 //   if (msg.text.toString().toLowerCase() === myEvents) {
 //     bot.sendMessage(msg.chat.id, "Тут будуть ваші події.");
 //   }
-//   bot.sendMessage(msg.chat.id, `${JSON.stringify(msg.from)}`);
-//   //{"id":542310372,"is_bot":false,"first_name":"Aleksandra","username":"fedaks","language_code":"uk"}
 // });
