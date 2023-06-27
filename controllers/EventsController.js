@@ -56,3 +56,28 @@ export const userEvents = async (telegramId) => {
   const user = await User.findOne({ telegramId });
   return user.events;
 };
+
+export const eventsByTag = async (msg) => {
+  const tag = msg.trim().toLowerCase();
+  const events = await Event.find({ tags: { $in: [tag] } });
+  return events;
+};
+
+export const eventsByCity = async (msg) => {
+  const city = msg.trim().toLowerCase();
+  const correctCity = city[0].toUpperCase() + city.slice(1);
+  const events = await Event.find({ location: correctCity });
+  return events;
+};
+
+export const eventsByDate = async (day, month, year) => {
+  const startDate = new Date(year, month, day, 3);
+  const endDate = new Date(year, month, day + 1, 3);
+  const events = await Event.find({
+    date: {
+      $gte: startDate,
+      $lt: endDate,
+    },
+  });
+  return events;
+};
