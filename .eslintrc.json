@@ -1,0 +1,27 @@
+{
+    "env": {
+        "browser": true,
+        "commonjs": true,
+        "es2021": true
+    },
+    "extends": [
+        "plugin:node/recommended",
+        "prettier",
+        "airbnb"
+    ],
+    "parserOptions": {
+        "ecmaVersion": "latest"
+    },
+    "rules": {
+        "no-console": "off",
+        "no-use-before-define": "off",
+        "linebreak-style": "off",
+        "import/extensions": [
+            "error",
+            {
+                "js": "always"
+            }
+        ],
+        "no-underscore-dangle": "off"
+    }
+}
