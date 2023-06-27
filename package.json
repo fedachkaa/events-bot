@@ -7,7 +7,8 @@
   "scripts": {
     "start": "nodemon index.js",
     "lint:fix": "eslint . --fix",
-    "format": "prettier . --write --config ./.prettierrc.json"
+    "format": "prettier . --write --config ./.prettierrc.json",
+    "prepare": "husky install"
   },
   "author": "",
   "license": "ISC",
